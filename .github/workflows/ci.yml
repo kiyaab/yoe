@@ -1,0 +1,87 @@
+name: CI / CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  backend-checks:
+    name: Backend Lint, Typecheck & Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: yalfal_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/yalfal_test?schema=public
+        run: npx prisma generate
+
+      - name: Run Database Push
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/yalfal_test?schema=public
+        run: npx prisma db push
+
+      - name: Build Backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Run Backend Tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/yalfal_test?schema=public
+          JWT_SECRET: test_jwt_secret_key_ci
+        run: npm test
+
+  frontend-checks:
+    name: Frontend Build & Typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build

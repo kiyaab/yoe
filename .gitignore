@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Production builds
+dist/
+*/dist/
+.next/
+*/.next/
+out/
+build/
+coverage/
+
+# Binaries and executables
+*.exe
+cloudflared.exe
+
+# Environment files & Secrets
+.env
+.env.local
+.env.development
+.env.production
+*.env
+!.env.example
+backend/.env
+frontend/.env.local
+
+# Uploads & Local Storage
+uploads/
+*/uploads/
+**/uploads/**
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Database & OS files
+*.db
+*.sqlite
+.DS_Store
+Thumbs.db

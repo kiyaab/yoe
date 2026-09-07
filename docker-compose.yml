@@ -33,11 +33,11 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
+  app:
     build:
       context: .
-      dockerfile: Dockerfile.backend
-    container_name: yalfal_backend
+      dockerfile: Dockerfile
+    container_name: yalfal_app
     restart: unless-stopped
     depends_on:
       postgres:
@@ -53,25 +53,10 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_ADMIN_IDS: ${TELEGRAM_ADMIN_IDS}
       TELEGRAM_BOT_MODE: ${TELEGRAM_BOT_MODE:-polling}
-      FRONTEND_URL: http://localhost:3000
     ports:
       - "4000:4000"
     volumes:
       - backend_uploads:/app/uploads
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: yalfal_frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    environment:
-      NEXT_PUBLIC_API_URL: http://backend:4000/api
-      NEXT_PUBLIC_WS_URL: http://backend:4000
-    ports:
-      - "3000:3000"
 
 volumes:
   postgres_data:

@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import * as fs from 'fs';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -15,11 +18,36 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { HealthModule } from './health/health.module';
 
+const getStaticPath = (): string => {
+  const candidates = [
+    join(process.cwd(), 'frontend', 'out'),
+    join(process.cwd(), '..', 'frontend', 'out'),
+    join(process.cwd(), 'out'),
+    join(__dirname, '..', '..', 'frontend', 'out'),
+    join(__dirname, '..', '..', '..', 'frontend', 'out'),
+    join(__dirname, '..', 'client'),
+    join(__dirname, '..', 'public'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return join(process.cwd(), 'frontend', 'out');
+};
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '../.env'],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: getStaticPath(),
+      exclude: ['/api/(.*)'],
+      serveStaticOptions: {
+        fallthrough: true,
+      },
     }),
     PrismaModule,
     AuthModule,

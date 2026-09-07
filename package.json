@@ -1,0 +1,23 @@
+{
+  "name": "yalfal-online-eta",
+  "version": "1.0.0",
+  "description": "Yalfal Online Eta - Unified Full-Stack Telegram Mini App & Web Lottery Platform",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm --prefix backend install && npm --prefix frontend install",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "build": "npm run build:frontend && npm run build:backend",
+    "start": "node backend/dist/main",
+    "start:backend": "npm --prefix backend run start:dev",
+    "start:frontend": "npm --prefix frontend run dev",
+    "prisma:generate": "npm --prefix backend run prisma:generate",
+    "prisma:push": "npm --prefix backend run prisma:push",
+    "prisma:migrate": "npm --prefix backend run prisma:migrate",
+    "prisma:seed": "npm --prefix backend run db:seed",
+    "render-build": "npm --prefix backend install --production=false && npm --prefix frontend install --production=false && npm --prefix backend run prisma:generate && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

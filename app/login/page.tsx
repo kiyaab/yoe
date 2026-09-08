@@ -4,18 +4,26 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Phone, ArrowRight, Send, AlertCircle } from 'lucide-react';
+import { apiFetch, setClientAuth } from '@/lib/api-client';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/tickets';
   const ticketNumber = searchParams.get('ticketNumber');
+  const initialPhone = searchParams.get('phone') || '';
 
-  const [login, setLogin] = useState('');
+  const [login, setLogin] = useState(initialPhone);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
+
+  useEffect(() => {
+    if (initialPhone) {
+      setLogin(initialPhone);
+    }
+  }, [initialPhone]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData) {
@@ -32,7 +40,7 @@ function LoginForm() {
     setErrorMsg('');
 
     try {
-      const res = await fetch('/api/auth/telegram', {
+      const res = await apiFetch('/api/auth/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData: tg.initData }),
@@ -40,6 +48,10 @@ function LoginForm() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Telegram authentication failed');
+
+      if (data.token && data.user) {
+        setClientAuth(data.token, data.user, data.isAdmin);
+      }
 
       router.push(redirect);
       router.refresh();
@@ -55,7 +67,7 @@ function LoginForm() {
     setErrorMsg('');
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login, password }),
@@ -63,6 +75,10 @@ function LoginForm() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid credentials');
+
+      if (data.token && data.user) {
+        setClientAuth(data.token, data.user, data.role === 'ADMIN' || data.isAdmin);
+      }
 
       if (data.role === 'ADMIN') {
         router.push('/admin');

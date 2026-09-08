@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Phone, User, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, Phone, User, ArrowRight, AlertCircle, LogIn } from 'lucide-react';
+import { apiFetch, setClientAuth } from '@/lib/api-client';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -13,26 +14,38 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [hasExistingAccount, setHasExistingAccount] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setErrorMsg('Passwords do not match.');
+      setHasExistingAccount(false);
       return;
     }
 
     setLoading(true);
     setErrorMsg('');
+    setHasExistingAccount(false);
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, phone, password }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed');
+      if (!res.ok) {
+        if (data.code === 'PHONE_EXISTS' || res.status === 409) {
+          setHasExistingAccount(true);
+        }
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      if (data.token && data.user) {
+        setClientAuth(data.token, data.user, false);
+      }
 
       router.push('/tickets');
       router.refresh();
@@ -54,9 +67,19 @@ export default function RegisterPage() {
         </div>
 
         {errorMsg && (
-          <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2 shadow-xs">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
+          <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex flex-col gap-2 shadow-xs">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+            {hasExistingAccount && (
+              <Link
+                href={`/login?phone=${encodeURIComponent(phone)}`}
+                className="mt-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition shadow-xs text-xs"
+              >
+                <LogIn className="w-3.5 h-3.5" /> Sign In to Existing Account
+              </Link>
+            )}
           </div>
         )}
 

@@ -44,10 +44,12 @@ export async function POST(req: NextRequest) {
 
     const res = NextResponse.json({
       success: true,
+      token, // Return token for Telegram Mini App SPA localStorage
       isAdmin,
       user: {
         id: user.id,
         telegramId: user.telegramId,
+        phone: user.phone,
         firstName: user.firstName,
         username: user.username,
       },
@@ -55,8 +57,8 @@ export async function POST(req: NextRequest) {
 
     res.cookies.set('yalfal_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60,
       path: '/',
     });

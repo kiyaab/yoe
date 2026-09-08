@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Check, Copy, Upload, AlertCircle, CheckCircle2, ArrowLeft, ShieldCheck, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { apiFetch } from '@/lib/api-client';
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -22,7 +23,7 @@ function CheckoutContent() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    fetch('/api/payments/methods')
+    apiFetch('/api/payments/methods')
       .then((res) => res.json())
       .then((data) => {
         if (data.methods) setMethods(data.methods);
@@ -69,7 +70,7 @@ function CheckoutContent() {
       formData.append('method', selectedMethod);
       formData.append('reference', reference);
 
-      const res = await fetch('/api/payments/submit', {
+      const res = await apiFetch('/api/payments/submit', {
         method: 'POST',
         body: formData,
       });

@@ -30,19 +30,49 @@ export default function RootLayout({
         {/* Telegram WebApp Initializer Script */}
         <Script id="telegram-webapp-init" strategy="afterInteractive">
           {`
-            if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
-              const tg = window.Telegram.WebApp;
-              tg.ready();
-              tg.expand();
-              if (tg.initData) {
-                // Auto-authenticate Telegram Mini App user
-                fetch('/api/auth/telegram', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ initData: tg.initData }),
-                }).catch(() => {});
+            (function() {
+              if (typeof window === 'undefined') return;
+              function initTelegram() {
+                if (window.Telegram && window.Telegram.WebApp) {
+                  const tg = window.Telegram.WebApp;
+                  try {
+                    tg.ready();
+                    tg.expand();
+                    if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+                    if (tg.setBackgroundColor) tg.setBackgroundColor('#f8fafc');
+                  } catch (e) {}
+
+                  if (tg.initData) {
+                    // Auto-authenticate Telegram Mini App user & sync session
+                    fetch('/api/auth/telegram', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ initData: tg.initData }),
+                    })
+                      .then(function(res) { return res.json(); })
+                      .then(function(data) {
+                        if (data.success && data.token) {
+                          localStorage.setItem('yalfal_token', data.token);
+                          localStorage.setItem('yalfal_user', JSON.stringify(data.user));
+                          localStorage.setItem('yalfal_is_admin', data.isAdmin ? 'true' : 'false');
+                          window.dispatchEvent(new CustomEvent('yalfal-auth-change', {
+                            detail: { authenticated: true, token: data.token, user: data.user, isAdmin: data.isAdmin }
+                          }));
+                        }
+                      })
+                      .catch(function(err) {
+                        console.error('Telegram auto-auth failed:', err);
+                      });
+                  }
+                }
               }
-            }
+
+              if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                initTelegram();
+              } else {
+                window.addEventListener('DOMContentLoaded', initTelegram);
+              }
+            })();
           `}
         </Script>
 

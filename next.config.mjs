@@ -13,6 +13,19 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org https://webk.telegram.org https://webz.telegram.org telegram: t.me;",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

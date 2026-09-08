@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Ticket as TicketIcon, Check, Lock, Clock, ArrowRight, Sparkles, Filter } from 'lucide-react';
+import { apiFetch } from '@/lib/api-client';
 
 interface TicketItem {
   ticketNumber: number;
@@ -23,7 +24,7 @@ export default function TicketsPage() {
   const pageSize = 20; // 10 pages for 200 numbers
 
   useEffect(() => {
-    fetch('/api/tickets')
+    apiFetch('/api/tickets')
       .then((res) => res.json())
       .then((data) => {
         if (data.tickets) {
@@ -65,7 +66,7 @@ export default function TicketsPage() {
     setErrorMsg('');
 
     try {
-      const res = await fetch('/api/tickets/reserve', {
+      const res = await apiFetch('/api/tickets/reserve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketNumber: selectedNumber }),

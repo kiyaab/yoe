@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { getSessionFromRequest } from '@/lib/auth';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { getTelegramBot } from '@/lib/telegram-bot';
 
 export async function POST(req: NextRequest) {
-  const token = req.cookies.get('yalfal_token')?.value;
-  if (!token) {
-    return NextResponse.json({ error: 'Please log in to submit receipts' }, { status: 401 });
-  }
-
-  const session = await verifyToken(token);
+  const session = await getSessionFromRequest(req);
   if (!session || !session.userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Please log in to submit receipts' }, { status: 401 });
   }
 
   try {

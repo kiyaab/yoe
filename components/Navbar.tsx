@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Ticket, Trophy, User as UserIcon, ShieldAlert, LogOut, Menu, X, Sparkles } from 'lucide-react';
+import { apiFetch, getClientUser, isClientAdmin, setClientAuth, clearClientAuth } from '@/lib/api-client';
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
@@ -13,21 +14,53 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.authenticated) {
-          setUser(data.user);
-          setIsAdmin(Boolean(data.isAdmin));
-        }
-      })
-      .catch(() => {});
+    // 1. Instantly read cached state
+    const cachedUser = getClientUser();
+    if (cachedUser) {
+      setUser(cachedUser);
+      setIsAdmin(isClientAdmin());
+    }
+
+    // 2. Fetch server verified status
+    const syncAuth = () => {
+      apiFetch('/api/auth/me')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.authenticated && data.user) {
+            setUser(data.user);
+            setIsAdmin(Boolean(data.isAdmin));
+          } else if (!getClientUser()) {
+            setUser(null);
+            setIsAdmin(false);
+          }
+        })
+        .catch(() => {});
+    };
+
+    syncAuth();
+
+    // 3. Listen for auth changes (Telegram auto-auth, Login, Register, Logout)
+    const handleAuthChange = (e: any) => {
+      if (e.detail?.authenticated && e.detail.user) {
+        setUser(e.detail.user);
+        setIsAdmin(Boolean(e.detail.isAdmin));
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+    };
+
+    window.addEventListener('yalfal-auth-change', handleAuthChange);
+    return () => window.removeEventListener('yalfal-auth-change', handleAuthChange);
   }, [pathname]);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/me', { method: 'DELETE' });
+    clearClientAuth();
     setUser(null);
     setIsAdmin(false);
+    try {
+      await apiFetch('/api/auth/me', { method: 'DELETE' });
+    } catch {}
     router.push('/');
     router.refresh();
   };

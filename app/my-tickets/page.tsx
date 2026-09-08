@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Ticket, Clock, CheckCircle2, XCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { apiFetch } from '@/lib/api-client';
 
 export default function MyTicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/tickets/my')
+    apiFetch('/api/tickets/my')
       .then((res) => res.json())
       .then((data) => {
         if (data.tickets) setTickets(data.tickets);

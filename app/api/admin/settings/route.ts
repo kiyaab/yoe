@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { getSessionFromRequest } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  const token = req.cookies.get('yalfal_token')?.value;
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const session = await verifyToken(token);
+  const session = await getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {

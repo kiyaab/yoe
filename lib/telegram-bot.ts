@@ -1,7 +1,7 @@
 import { Telegraf, Markup } from 'telegraf';
 import { prisma } from './prisma';
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
+const token = process.env.TELEGRAM_BOT_TOKEN || '8880998246:AAFkEAPFE2Jj1ZSpn3NzqxIqrgqvJXmVacM';
 
 let bot: Telegraf | null = null;
 let isPollingActive = false;
@@ -13,11 +13,11 @@ let isPollingActive = false;
 export function getWebAppUrl(): string {
   const raw =
     process.env.TELEGRAM_MINI_APP_URL ||
-    process.env.RENDER_EXTERNAL_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.FRONTEND_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
     process.env.TELEGRAM_WEBHOOK_DOMAIN ||
-    'http://localhost:3000';
+    'https://yalfalonline.vercel.app';
 
   let cleaned = raw.trim();
   if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {

@@ -65,19 +65,58 @@ export class BotService implements OnModuleInit {
       this.logger.log(`🤖 Telegram Bot authenticated successfully as @${this.botInfo.username}`);
 
       const botMode = process.env.TELEGRAM_BOT_MODE || 'polling';
-      if (botMode === 'polling') {
+      if (botMode === 'webhook') {
+        const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL;
+        const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+
+        if (!webhookUrl) {
+          this.logger.error('❌ TELEGRAM_BOT_MODE=webhook requires TELEGRAM_WEBHOOK_URL to be set.');
+          this.isRunning = false;
+          return { success: false, error: 'TELEGRAM_WEBHOOK_URL is required' };
+        }
+
+        await this.setupWebhookWithRetry(webhookUrl, webhookSecret);
+        this.isRunning = true;
+      } else {
         this.bot.launch().catch((err) => {
           this.logger.error('Telegram bot polling error:', err);
           this.isRunning = false;
         });
         this.isRunning = true;
-        this.logger.log('🤖 Telegram Bot launched in Long Polling mode');
+        this.logger.log('🤖 Telegram Bot launched in Long Polling mode (development)');
       }
       return { success: true, bot: this.botInfo };
     } catch (err: any) {
-      this.logger.error(`Failed to connect Telegram bot with token: ${err.message}`);
+      this.logger.error(`Failed to connect Telegram bot: ${err.message}`);
       this.isRunning = false;
       return { success: false, error: err.message };
+    }
+  }
+
+  private async setupWebhookWithRetry(url: string, secret?: string, maxAttempts = 5) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await this.bot.telegram.setWebhook(url, {
+          secret_token: secret,
+          drop_pending_updates: false,
+        });
+        this.logger.log(`🚀 Production Telegram Webhook configured at: ${url}`);
+        const webhookInfo = await this.bot.telegram.getWebhookInfo();
+        this.logger.log(
+          `📡 Webhook verified. URL: ${webhookInfo.url}, Pending updates: ${webhookInfo.pending_update_count}`
+        );
+        return;
+      } catch (err: any) {
+        this.logger.warn(`Webhook setup attempt ${attempt}/${maxAttempts} failed: ${err.message}`);
+        if (attempt < maxAttempts) {
+          await sleep(2000 * attempt);
+        } else {
+          this.logger.error(
+            `❌ Failed to configure Telegram webhook after ${maxAttempts} attempts: ${err.message}`
+          );
+          throw err;
+        }
+      }
     }
   }
 
@@ -88,6 +127,7 @@ export class BotService implements OnModuleInit {
       botName: this.botInfo?.first_name || 'Yalfal Online Eta',
       mode: process.env.TELEGRAM_BOT_MODE || 'polling',
       tokenSet: !!(process.env.TELEGRAM_BOT_TOKEN && !process.env.TELEGRAM_BOT_TOKEN.includes('FakeToken')),
+      webhookUrl: process.env.TELEGRAM_WEBHOOK_URL || null,
     };
   }
 

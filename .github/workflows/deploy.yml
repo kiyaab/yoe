@@ -1,0 +1,59 @@
+name: CI/CD Production Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-build:
+    name: Test & Build Telegram Bot Engine
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Unit & Concurrency Tests
+        run: npm test -- --coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/yalfal_test?schema=public"
+
+      - name: Build NestJS Production Bundle
+        run: npm run build
+
+  deploy-vps:
+    name: Deploy to 24/7 VPS
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Deploy via SSH to Linux Server
+        uses: appleboy/ssh-action@v1.0.3
+        if: "${{ env.HAS_SSH == 'true' }}"
+        env:
+          HAS_SSH: ${{ secrets.VPS_HOST != '' }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER || 'root' }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            cd /opt/yalfal-online-eta
+            git pull origin main
+            bash deploy/deploy.sh

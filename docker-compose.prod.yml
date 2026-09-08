@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: yalfal-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${POSTGRES_DB:-yalfal_online_eta}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-yalfal_online_eta}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - yalfal-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: yalfal-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - yalfal-network
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yalfal-bot
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@postgres:5432/${POSTGRES_DB:-yalfal_online_eta}?schema=public
+      REDIS_URL: redis://redis:6379
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_ADMIN_IDS: ${TELEGRAM_ADMIN_IDS}
+      TELEGRAM_BOT_MODE: ${TELEGRAM_BOT_MODE:-webhook}
+      TELEGRAM_WEBHOOK_DOMAIN: ${TELEGRAM_WEBHOOK_DOMAIN}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - receipts_data:/app/uploads/receipts
+    expose:
+      - "4000"
+    networks:
+      - yalfal-network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: yalfal-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      - bot
+    networks:
+      - yalfal-network
+
+  backup:
+    build:
+      context: ./deploy/backup
+      dockerfile: Dockerfile
+    container_name: yalfal-backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${POSTGRES_DB:-yalfal_online_eta}
+      BACKUP_RETENTION_DAYS: 7
+    volumes:
+      - backup_data:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - yalfal-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  receipts_data:
+  backup_data:
+
+networks:
+  yalfal-network:
+    driver: bridge

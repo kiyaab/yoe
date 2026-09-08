@@ -36,6 +36,10 @@ uploads/
 npm-debug.log*
 yarn-debug.log*
 
+# Legacy local directories
+backend/
+frontend/
+
 # Database & OS files
 *.db
 *.sqlite

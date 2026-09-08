@@ -14,6 +14,7 @@ import { AuditModule } from './audit/audit.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { BotModule } from './bot/bot.module';
 import { HealthModule } from './health/health.module';
+import { RedisModule } from './common/redis/redis.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { HealthModule } from './health/health.module';
       envFilePath: ['.env'],
     }),
     PrismaModule,
+    RedisModule,
     AuthModule,
     UsersModule,
     LotteryModule,

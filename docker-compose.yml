@@ -56,9 +56,9 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - backend_uploads:/app/uploads
+      - receipts_data:/app/uploads/receipts
 
 volumes:
   postgres_data:
   redis_data:
-  backend_uploads:
+  receipts_data:

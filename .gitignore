@@ -15,6 +15,7 @@ coverage/
 # Binaries and executables
 *.exe
 cloudflared.exe
+bin/
 
 # Environment files & Secrets
 .env

@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-and-build:
-    name: Test & Build Telegram Bot Engine
+    name: Test & Build Next.js WebApp & Bot Engine
     runs-on: ubuntu-latest
 
     steps:
@@ -27,13 +27,13 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Run Unit & Concurrency Tests
-        run: npm test -- --coverage
+      - name: Run Unit Tests
+        run: npm test
         env:
           NODE_ENV: test
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/yalfal_test?schema=public"
 
-      - name: Build NestJS Production Bundle
+      - name: Build Next.js Production Bundle
         run: npm run build
 
   deploy-vps:

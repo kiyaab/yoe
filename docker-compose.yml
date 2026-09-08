@@ -46,7 +46,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 4000
+      PORT: 3000
       DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/yalfal_online_eta?schema=public
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-yalfal_jwt_production_secret_key_ethiopia}
@@ -54,7 +54,7 @@ services:
       TELEGRAM_ADMIN_IDS: ${TELEGRAM_ADMIN_IDS}
       TELEGRAM_BOT_MODE: ${TELEGRAM_BOT_MODE:-polling}
     ports:
-      - "4000:4000"
+      - "3000:3000"
     volumes:
       - receipts_data:/app/uploads/receipts
 

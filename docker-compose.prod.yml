@@ -43,7 +43,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 4000
+      PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@postgres:5432/${POSTGRES_DB:-yalfal_online_eta}?schema=public
       REDIS_URL: redis://redis:6379
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
@@ -60,7 +60,7 @@ services:
     volumes:
       - receipts_data:/app/uploads/receipts
     expose:
-      - "4000"
+      - "3000"
     networks:
       - yalfal-network
 

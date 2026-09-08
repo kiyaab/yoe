@@ -1,43 +1,49 @@
-# ==========================================
-# Stage 1: Build NestJS Telegram Bot
-# ==========================================
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS base
+
+# Stage 1: Install dependencies
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
+
 COPY package*.json ./
 COPY prisma ./prisma/
 RUN npm ci || npm install
 RUN npx prisma generate
+
+# Stage 2: Build Next.js application
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . ./
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
 RUN npm run build
 
-# ==========================================
-# Stage 2: Production Runner
-# ==========================================
-FROM node:20-alpine AS runner
+# Stage 3: Production runner
+FROM base AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Install utilities for healthcheck
-RUN apk add --no-cache curl wget
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm ci --omit=dev || npm install --omit=dev
-RUN npm install prisma --no-save
-RUN npx prisma generate
+# Copy standalone build
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
 
-COPY --from=builder /app/dist ./dist
+# Create uploads directory for receipt persistence
+RUN mkdir -p /app/uploads/receipts && chown -R nextjs:nodejs /app/uploads
 
-# Create uploads directory for persistent receipts and assign ownership to node user
-RUN mkdir -p /app/uploads/receipts && chown -R node:node /app
+USER nextjs
 
-USER node
+EXPOSE 3000
 
-EXPOSE 4000
-
-# Container healthcheck
-HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget --spider --quiet http://localhost:4000/api/health || exit 1
-
-CMD ["node", "dist/main.js"]
+CMD ["node", "server.js"]

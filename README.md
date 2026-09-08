@@ -1,219 +1,126 @@
 # 🎡 YALFAL ONLINE ETA
 > **“Your Number. Your Chance. Your Moment.”**  
-> Telegram-Only Digital Lottery Bot — 100% Inside Telegram.
+> Unified Next.js Fullstack WebApp & Telegram Mini App Digital Lottery Platform
 
 ---
 
 ## 📌 Product Overview
 
-**Yalfal Online Eta** is a complete, production-grade lottery platform designed to operate **100% inside Telegram**. 
-There is no website, no web dashboard, and no external app required. Both participants and platform administrators manage the entire lifecycle directly through `@yalfalonlinebot`.
+**Yalfal Online Eta** is a complete, production-grade lottery platform with **dual-access experience**:
+1. **Interactive Next.js Web Application**: Accessible from any modern desktop or mobile browser.
+2. **Telegram Mini App**: Launches directly inside Telegram with 1-click automatic authentication (`window.Telegram.WebApp.initData`).
+3. **Telegram Bot Engine**: Embedded Telegraf webhook handler (`/api/telegram/webhook`) for instant message updates, status commands, and ticket purchase alerts.
 
-### Key Parameters:
+### Key Lottery Parameters:
 - **Available Numbers:** 1–200 per lottery round
 - **Ticket Entry Fee:** 100 ETB
 - **Round Capacity:** 200 participants maximum
 - **Total Ticket Revenue:** 20,000 ETB
-- **Prizes:**
+- **Guaranteed Prizes:**
   - 🥇 **1st Prize:** 10,000 ETB
   - 🥈 **2nd Prize:** 1,000 ETB
   - 🥉 **3rd Prize:** 500 ETB
-- **Supported Payment Methods:** Commercial Bank of Ethiopia (CBE) & Ethio Telecom Telebirr
-- **Draw Algorithm:** Node.js Cryptographically Secure Pseudorandom Number Generator (`crypto.randomInt` / CSPRNG) with exclusion of previous round prize winners.
-- **Spin Wheel Experience:** Visual animated message-editing sequence directly inside Telegram with timed suspense pauses.
+- **Accepted Payment Methods:** Commercial Bank of Ethiopia (CBE) & Ethio Telecom Telebirr
+- **Draw Algorithm:** Node.js Cryptographically Secure Pseudorandom Number Generator (`crypto.randomInt` / CSPRNG) with progressive exclusion of prior winners.
+- **Spin Wheel Experience:** Visual animated rotating drum and 3D wheel with celebratory confetti animations (`canvas-confetti`).
 
 ---
 
-## 🌐 24/7 Production VPS Architecture
+## 🏛️ Unified Architecture
 
-Designed to operate continuously on an always-on Linux VPS (Ubuntu 24.04 LTS), surviving server reboots, network glitches, and container updates.
+Everything lives in **one unified repository** at the root:
 
 ```
-                         TELEGRAM CLIENT
-                                │
-                                ▼
-                         Telegram Bot API
-                                │
-                         HTTPS Webhook
-                                │
-                                ▼
-                         NGINX (Port 443)
-                  SSL Termination / Rate Limiting
-                                │
-                                ▼
-                    Yalfal Bot (NestJS :4000)
-                 Telegraf 4.x Webhook Engine
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        ▼                       ▼                       ▼
-PostgreSQL 16              Redis 7 Alpine        Persistent Volume
-(Transactions / ACID)   (Distributed Locking)   (/app/uploads/receipts)
-        │
-        ▼
-PostgreSQL Backup
-(Daily gzip + 7d retention)
+yalfal-online-eta/
+├── app/                          # Next.js 14 App Router
+│   ├── page.tsx                  # High-impact Landing Page & Prize Showcase
+│   ├── tickets/page.tsx          # Interactive 1–200 Ticket Selector (10-Page Tabs)
+│   ├── checkout/page.tsx         # Payment Details (CBE/Telebirr) & Receipt Upload
+│   ├── draw/page.tsx             # Live Animated Spin Wheel & Winner Podium
+│   ├── login/page.tsx            # Phone/Password & Telegram 1-Click Login
+│   ├── register/page.tsx         # Account Creation
+│   ├── my-tickets/page.tsx       # User Portal (Ticket Status & History)
+│   ├── admin/                    # In-Browser Admin Control Suite
+│   │   ├── page.tsx              # Dashboard Metrics & Round Controls
+│   │   ├── payments/page.tsx     # Receipt Queue (Full-Res Photo Modal + Approve/Reject)
+│   │   ├── draw/page.tsx         # Admin CSPRNG Draw Console
+│   │   └── settings/page.tsx     # CBE & Telebirr Bank Account Configuration
+│   └── api/                      # Fullstack API Route Handlers
+│       ├── auth/                 # Login, Register, Me, Telegram Auth
+│       ├── lottery/              # Active round information
+│       ├── tickets/              # 1–200 status, concurrency reservation, my tickets
+│       ├── payments/             # CBE/Telebirr instructions, receipt SHA-256 upload
+│       ├── admin/                # Stats, payment review, draw execution, settings
+│       ├── telegram/webhook/     # Embedded Telegraf Webhook Handler
+│       └── health/               # Deep Health Check (DB, Redis, Bot, RAM, Uptime)
+├── components/                   # Modern Glassmorphic UI (Navbar, Footer)
+├── lib/                          # Prisma Singleton, Auth (JWT/HMAC), CSPRNG Draw, Redis Lock
+├── prisma/                       # PostgreSQL Schema & Seed
+├── deploy/                       # 24/7 Linux VPS Provisioning & Nginx Configuration
+├── Dockerfile                    # Next.js Standalone Multi-Stage Alpine Container
+├── docker-compose.prod.yml       # Production Stack (Next.js :3000, Postgres, Redis, Nginx, Backup)
+└── package.json                  # Next.js 14, React 18, Prisma, Telegraf, TailwindCSS
 ```
 
-### Production Stack Highlights:
-- **Zero Polling in Production:** Webhook mode with `secret_token` validation and automatic retry handling.
-- **Multi-Container Isolation:** Managed via `docker-compose.prod.yml` with isolated bridge networking and non-root process execution.
-- **Automatic Self-Healing:** All containers configured with `restart: unless-stopped` and Docker healthchecks.
-- **Durable Storage:** Named volumes (`postgres_data`, `redis_data`, `receipts_data`, `backup_data`) guarantee zero data loss during restarts or host reboot.
-- **Automated Nightly Backups:** Standalone backup daemon runs `pg_dump` with `gzip` at 02:00 UTC and auto-prunes snapshots older than 7 days.
-- **Deep Health Check:** Real-time diagnostics endpoint at `GET /api/health` and `GET /health` inspecting Database connectivity, Redis ping, Bot engine status, Memory usage, and System uptime.
-
 ---
 
-## 📱 User & Admin Journey (100% In-Telegram)
+## 🚀 Running Locally (Windows / macOS / Linux)
 
-### Participant Workflow
-1. `/start` -> Branded greeting with live round information and interactive menu.
-2. `🎟 Buy Number` -> 10-page inline keyboard pagination (1–20, 21–40 ... 181–200) displaying 🟢 Available and ❌ Taken indicators.
-3. Number Selection -> Confirmation dialog (`🎟 NUMBER SELECTED #087`).
-4. Payment Details -> Dynamic CBE account number and Telebirr phone instructions.
-5. Receipt Upload -> User submits payment screenshot/document; system calculates SHA-256 hash to prevent duplicate submissions and sets state to `PENDING`.
-6. Ticket Confirmation -> User is notified immediately when payment is verified.
-
-### Administrator Suite (`/admin`)
-Access restricted to authorized numeric IDs in `TELEGRAM_ADMIN_IDS`:
-- `📊 Dashboard` -> Live round metrics (tickets sold, approved revenue, pending queue).
-- `💳 Pending Payments` -> Interactive receipt review cards with `[✅ APPROVE]` and `[❌ REJECT]` buttons + custom rejection dialog.
-- `🎟 Tickets` -> Search by ticket number, Telegram ID, or username.
-- `👥 Users` -> Participant history, ticket count, approved/rejected stats.
-- `🎡 Lottery` -> Create round, pause round, close sales, and trigger CSPRNG draw.
-- `🏆 Winners` -> Immutable historical winner records.
-- `📢 Broadcast` -> Send messages to participants with preview dialog.
-- `⚙️ Settings` -> Configure CBE account, Telebirr phone, and support contacts.
-- `📜 Audit Logs` -> Complete administrative audit trail.
-
----
-
-## 🚀 24/7 VPS Deployment (Ubuntu 24.04 LTS)
-
-### Step 1: Provision the VPS
-Run the turnkey provisioning script as root on your Ubuntu 24.04 LTS server:
 ```bash
-# Clone the repository to the server
+# 1. Install dependencies
+npm install
+
+# 2. Setup environment
+cp .env.example .env
+# Configure DATABASE_URL and TELEGRAM_BOT_TOKEN
+
+# 3. Generate Prisma client & seed initial round
+npx prisma generate
+npx prisma db push
+npm run db:seed
+
+# 4. Start Next.js development server
+npm run dev
+```
+
+Open your browser to:
+- **Web App**: `http://localhost:3000`
+- **Ticket Selector**: `http://localhost:3000/tickets`
+- **Live Spin Wheel**: `http://localhost:3000/draw`
+- **Admin Dashboard**: `http://localhost:3000/admin`
+- **Health Diagnostics**: `http://localhost:3000/api/health`
+
+---
+
+## 🌐 24/7 VPS Deployment (Ubuntu 24.04 LTS)
+
+### Step 1: Provision Server
+```bash
 git clone https://github.com/kiyaab/yoe.git /opt/yalfal-online-eta
 cd /opt/yalfal-online-eta
-
-# Run turnkey server provisioning (installs Docker, UFW firewall, Fail2ban, Certbot)
 sudo bash deploy/setup-vps.sh
 ```
 
-### Step 2: Configure Environment & Domain
-1. Point your domain (e.g. `bot.yourdomain.com`) DNS `A` record to your VPS IP address.
-2. Obtain a free Let's Encrypt SSL certificate:
-```bash
-sudo certbot certonly --standalone -d bot.yourdomain.com
-sudo ln -s /etc/letsencrypt/live/bot.yourdomain.com /etc/letsencrypt/live/bot
-```
-3. Edit `/opt/yalfal-online-eta/.env.production`:
+### Step 2: Configure Production Environment
 ```bash
 nano /opt/yalfal-online-eta/.env.production
 ```
-Configure your credentials:
-```env
-TELEGRAM_BOT_TOKEN=YOUR_REVOKED_AND_ROTATED_BOT_TOKEN
-TELEGRAM_ADMIN_IDS=YOUR_TELEGRAM_NUMERIC_ID
-TELEGRAM_BOT_MODE=webhook
-TELEGRAM_WEBHOOK_DOMAIN=bot.yourdomain.com
-TELEGRAM_WEBHOOK_SECRET=your_random_32_character_secret
-POSTGRES_PASSWORD=your_strong_postgres_password
-JWT_SECRET=your_jwt_secret
-```
 
-### Step 3: Launch Production Stack
+### Step 3: Deploy
 ```bash
 bash deploy/deploy.sh
 ```
-This script automatically:
-- Validates environment configuration
-- Builds production Docker images
-- Starts PostgreSQL and Redis
-- Executes Prisma database migrations (`npx prisma migrate deploy`)
-- Starts NestJS Telegram Bot, Nginx, and Backup containers
-- Validates deep healthcheck at `http://localhost:4000/api/health`
+
+Nginx automatically terminates SSL on ports 80/443 and proxies to the Next.js fullstack standalone server on port 3000.
 
 ---
 
-## 🔒 Security & Telegram Bot Token Rotation
-
-> [!CAUTION]
-> **Token Rotation Requirement:** Any BotFather token previously tested on a local PC or exposed in chat history must be immediately revoked before production launch.
-> 1. Open Telegram and message [@BotFather](https://t.me/BotFather).
-> 2. Send `/revoke` and select your bot.
-> 3. Copy the newly generated token.
-> 4. Put the new token ONLY in `.env.production` on your secure Linux VPS.
-> 5. Never commit your `.env` or `.env.production` file to any git repository.
-
----
-
-## 🩺 Monitoring & Diagnostics
-
-### Deep Health Check Endpoint
-Query the health check at any time from your VPS or an external monitoring service (e.g., Uptime Kuma, BetterUptime):
+## 🧪 Testing & Verification
 
 ```bash
-curl https://bot.yourdomain.com/api/health
-```
-
-Sample 200 OK Response:
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-09-08T06:15:00.000Z",
-  "uptime": 3600,
-  "database": {
-    "status": "connected",
-    "latencyMs": 2
-  },
-  "redis": {
-    "status": "connected"
-  },
-  "bot": {
-    "mode": "webhook",
-    "username": "yalfalonlinebot",
-    "webhookDomain": "bot.yourdomain.com",
-    "status": "active"
-  },
-  "memory": {
-    "heapUsedMb": 54,
-    "heapTotalMb": 72,
-    "rssMb": 110
-  }
-}
-```
-
-### Container Management Commands
-```bash
-# Check running containers
-docker compose -f docker-compose.prod.yml ps
-
-# View live bot logs
-docker compose -f docker-compose.prod.yml logs -f bot
-
-# View automated database backup logs
-docker compose -f docker-compose.prod.yml logs -f backup
-
-# Trigger manual immediate database backup
-docker compose -f docker-compose.prod.yml exec backup /backup.sh
-
-# Restart the entire stack
-docker compose -f docker-compose.prod.yml restart
-```
-
----
-
-## 🧪 Local Testing & Verification
-
-```bash
-# Run unit & CSPRNG fairness tests (100% pass)
+# CSPRNG Draw Engine Fairness Tests
 npm test
 
-# Run high-concurrency race condition tests
-npx jest --config test/jest-e2e.json
-
-# Build NestJS distribution bundle
+# Build Production Next.js Bundle
 npm run build
 ```

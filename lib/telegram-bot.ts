@@ -4,29 +4,30 @@ import { prisma } from './prisma';
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
 let bot: Telegraf | null = null;
+let isPollingActive = false;
 
 export function getTelegramBot(): Telegraf | null {
   if (!token) return null;
   if (!bot) {
     bot = new Telegraf(token);
 
+    // /start command
     bot.start(async (ctx) => {
       const from = ctx.from;
       if (!from) return;
 
-      // Auto-register / upsert user in database
       try {
         await prisma.user.upsert({
           where: { telegramId: from.id.toString() },
           create: {
             telegramId: from.id.toString(),
             username: from.username || null,
-            firstName: from.first_name || null,
+            firstName: from.first_name || 'Participant',
             lastName: from.last_name || null,
           },
           update: {
             username: from.username || null,
-            firstName: from.first_name || null,
+            firstName: from.first_name || 'Participant',
             lastName: from.last_name || null,
           },
         });
@@ -34,7 +35,11 @@ export function getTelegramBot(): Telegraf | null {
         console.error('Failed to upsert telegram user:', err);
       }
 
-      const domain = process.env.TELEGRAM_WEBHOOK_DOMAIN || process.env.NEXT_PUBLIC_APP_URL || 'localhost:3000';
+      const domain =
+        process.env.TELEGRAM_WEBHOOK_DOMAIN ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.FRONTEND_URL ||
+        'http://localhost:3000';
       const webAppUrl = domain.startsWith('http') ? domain : `https://${domain}`;
 
       const welcomeText =
@@ -57,6 +62,51 @@ export function getTelegramBot(): Telegraf | null {
       ]);
 
       await ctx.replyWithMarkdown(welcomeText, keyboard);
+    });
+
+    // /admin command
+    bot.command('admin', async (ctx) => {
+      const fromId = ctx.from?.id?.toString();
+      const adminIds = (process.env.TELEGRAM_ADMIN_IDS || '').split(',').map((s) => s.trim());
+
+      if (!fromId || !adminIds.includes(fromId)) {
+        await ctx.reply('⛔ Access denied. You are not authorized to view the admin panel.');
+        return;
+      }
+
+      const domain =
+        process.env.TELEGRAM_WEBHOOK_DOMAIN ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.FRONTEND_URL ||
+        'http://localhost:3000';
+      const adminUrl = (domain.startsWith('http') ? domain : `https://${domain}`) + '/admin';
+
+      await ctx.replyWithMarkdown(
+        `🛡️ *YALFAL ONLINE ETA ADMIN SUITE*\n\n` +
+        `Tap below to open your administrator dashboard, review pending payment receipts, and execute live draws.`,
+        Markup.inlineKeyboard([
+          [Markup.button.webApp('🛡️ Open Admin Panel', adminUrl)],
+          [Markup.button.url('🌐 Open Admin in Browser', adminUrl)],
+        ])
+      );
+    });
+
+    // /buy command
+    bot.command('buy', async (ctx) => {
+      const domain =
+        process.env.TELEGRAM_WEBHOOK_DOMAIN ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.FRONTEND_URL ||
+        'http://localhost:3000';
+      const ticketsUrl = (domain.startsWith('http') ? domain : `https://${domain}`) + '/tickets';
+
+      await ctx.replyWithMarkdown(
+        `🎟 *SELECT YOUR LUCKY NUMBER (1–200)*\n\n` +
+        `Tap below to browse available numbers on our 10-page interactive grid for 100 ETB!`,
+        Markup.inlineKeyboard([
+          [Markup.button.webApp('🎟 Browse Numbers (1–200)', ticketsUrl)],
+        ])
+      );
     });
 
     bot.action('status', async (ctx) => {
@@ -93,7 +143,29 @@ export function getTelegramBot(): Telegraf | null {
       const contact = setting?.value || '@yalfalsupport';
       await ctx.reply(`📞 Need assistance? Contact our official support team at ${contact}`);
     });
+
+    // Automatically start polling in local development mode
+    const mode = process.env.TELEGRAM_BOT_MODE || (process.env.NODE_ENV === 'production' ? 'webhook' : 'polling');
+    if (mode === 'polling' && !isPollingActive) {
+      isPollingActive = true;
+      bot.launch({ dropPendingUpdates: true })
+        .then(() => {
+          console.log('🤖 Telegram Bot polling started successfully in development mode');
+        })
+        .catch((err) => {
+          console.warn('ℹ Telegram Bot launch note:', err.message);
+        });
+    }
   }
 
   return bot;
+}
+
+// Automatically initialize bot if token is configured
+if (token) {
+  try {
+    getTelegramBot();
+  } catch (err) {
+    console.error('Bot init error:', err);
+  }
 }

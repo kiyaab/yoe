@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ payments });
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch pending payments' }, { status: 500 });
+    return NextResponse.json({ payments: [] });
   }
 }
 

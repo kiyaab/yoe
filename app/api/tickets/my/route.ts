@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ tickets });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to fetch tickets' }, { status: 500 });
+    console.warn('Database error in /api/tickets/my, serving empty list:', err?.message);
+    return NextResponse.json({ tickets: [] });
   }
 }

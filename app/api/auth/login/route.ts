@@ -14,9 +14,14 @@ export async function POST(req: NextRequest) {
     const normalizedPhoneLogin = normalizePhone(trimmedLogin);
 
     // Check admin first
-    const admin = await prisma.admin.findUnique({
-      where: { email: trimmedLogin },
-    });
+    let admin: any = null;
+    try {
+      admin = await prisma.admin.findUnique({
+        where: { email: trimmedLogin },
+      });
+    } catch (err: any) {
+      console.warn('Database offline on serverless host, skipping admin check:', err?.message);
+    }
 
     if (admin) {
       const match = await comparePassword(password, admin.passwordHash);
@@ -46,15 +51,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Check user by normalized phone, raw phone, or username
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { phone: normalizedPhoneLogin },
-          { phone: trimmedLogin },
-          { username: trimmedLogin },
-        ],
-      },
-    });
+    let user: any = null;
+    try {
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { phone: normalizedPhoneLogin },
+            { phone: trimmedLogin },
+            { username: trimmedLogin },
+          ],
+        },
+      });
+    } catch (err: any) {
+      console.warn('Database offline on serverless host, skipping user lookup:', err?.message);
+    }
 
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: 'Invalid phone/username or password' }, { status: 401 });

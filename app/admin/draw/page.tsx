@@ -41,7 +41,7 @@ export default function AdminDrawPage() {
         particleCount: 150,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#F59E0B', '#10B981', '#ffffff', '#FBBF24'],
+        colors: ['#F59E0B', '#10B981', '#fbbf24', '#059669'],
       });
     } catch (err: any) {
       setErrorMsg(err.message);
@@ -54,49 +54,49 @@ export default function AdminDrawPage() {
 
   return (
     <div className="min-h-screen py-10 px-4 lg:px-8 max-w-4xl mx-auto">
-      <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white mb-6">
+      <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 mb-6">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
       </Link>
 
       <div className="text-center max-w-2xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-xs font-semibold mb-3">
-          <Trophy className="w-3.5 h-3.5" /> Official CSPRNG Draw Console
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold mb-3 shadow-2xs">
+          <Trophy className="w-3.5 h-3.5 text-amber-600" /> Official CSPRNG Draw Console
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-white mb-2">Execute Lottery Draw</h1>
-        <p className="text-xs text-gray-400">
+        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mb-2">Execute Lottery Draw</h1>
+        <p className="text-xs text-slate-600">
           This console executes the Node.js CSPRNG (`crypto.randomInt`) algorithm across all confirmed tickets for Round #{stats?.roundNumber || 1}.
         </p>
       </div>
 
       {errorMsg && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-medium text-center">
+        <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold text-center shadow-2xs">
           {errorMsg}
         </div>
       )}
 
       {/* Draw Status Panel */}
-      <div className="glass-panel rounded-3xl p-8 border border-white/10 max-w-xl mx-auto text-center space-y-6 mb-10">
-        <div className="flex justify-around items-center py-4 border-b border-white/10 text-center">
+      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-md max-w-xl mx-auto text-center space-y-6 mb-10">
+        <div className="flex justify-around items-center py-4 border-b border-slate-100 text-center">
           <div>
-            <div className="text-xs text-gray-400 font-semibold">Active Round</div>
-            <div className="text-2xl font-black text-white font-mono">#{stats?.roundNumber || 1}</div>
+            <div className="text-xs text-slate-500 font-semibold">Active Round</div>
+            <div className="text-2xl font-black text-slate-900 font-mono">#{stats?.roundNumber || 1}</div>
           </div>
-          <div className="h-10 w-px bg-white/10" />
+          <div className="h-10 w-px bg-slate-200" />
           <div>
-            <div className="text-xs text-gray-400 font-semibold">Confirmed Tickets</div>
-            <div className={`text-2xl font-black font-mono ${confirmedCount >= 3 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <div className="text-xs text-slate-500 font-semibold">Confirmed Tickets</div>
+            <div className={`text-2xl font-black font-mono ${confirmedCount >= 3 ? 'text-emerald-700' : 'text-rose-600'}`}>
               {confirmedCount} / 200
             </div>
           </div>
         </div>
 
         {confirmedCount < 3 ? (
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 leading-relaxed">
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed font-medium">
             ⚠️ <strong>Notice:</strong> At least <strong>3 confirmed tickets</strong> are required to trigger a 3-prize draw. Please approve more pending payments or purchase tickets first.
           </div>
         ) : (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center justify-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center justify-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
             Ready for execution: {confirmedCount} tickets are eligible for the jackpot draw.
           </div>
         )}
@@ -104,56 +104,45 @@ export default function AdminDrawPage() {
         <button
           onClick={handleExecuteDraw}
           disabled={drawing || confirmedCount < 3}
-          className="w-full py-4 gold-btn text-slate-950 font-black text-base flex items-center justify-center gap-2 shadow-xl shadow-amber-500/30 hover:scale-[1.01] transition disabled:opacity-40"
+          className="w-full py-4 gold-btn text-slate-950 font-black text-base flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 hover:scale-[1.01] transition disabled:opacity-50"
         >
-          {drawing ? (
-            'Executing CSPRNG Hardware Draw...'
-          ) : (
-            <>
-              <Play className="w-5 h-5 fill-current" /> Execute Official Draw
-            </>
-          )}
+          <Play className="w-5 h-5 fill-current" />
+          {drawing ? 'Calculating Cryptographic Entropy...' : 'Execute Official Live Draw'}
         </button>
       </div>
 
-      {/* Winners Reveal Showcase */}
+      {/* Draw Result Reveal */}
       {winners && (
-        <div className="glass-panel rounded-3xl p-8 border border-amber-400/50 space-y-6 animate-fade-in shadow-2xl shadow-amber-500/20">
-          <div className="text-center">
-            <div className="text-4xl mb-2">🎉</div>
-            <h2 className="text-2xl font-black text-white">Winners Certified & Awarded!</h2>
-            <p className="text-xs text-gray-400">Prizes have been registered in the database and participants notified.</p>
-          </div>
+        <div className="bg-white rounded-3xl p-8 border-2 border-amber-300 shadow-xl space-y-6 max-w-2xl mx-auto text-center">
+          <div className="text-4xl mb-2">🏆</div>
+          <h2 className="text-2xl font-black text-slate-900">Official Draw Completed!</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 rounded-2xl bg-amber-500/15 border border-amber-400 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+            <div className="p-5 rounded-2xl bg-amber-50 border-2 border-amber-400">
               <div className="text-2xl mb-1">🥇</div>
-              <div className="text-xs font-bold uppercase text-amber-400">1st Prize Winner</div>
-              <div className="text-3xl font-black font-mono text-white my-2">
-                #{String(winners.first.ticketNumber).padStart(3, '0')}
+              <div className="text-[10px] font-bold text-amber-800 uppercase">1st Prize Winner</div>
+              <div className="text-2xl font-black font-mono text-slate-900 my-1">
+                #{String(winners.first?.ticketNumber).padStart(3, '0')}
               </div>
-              <div className="text-xs font-mono font-bold text-amber-300">10,000 ETB</div>
-              <div className="text-[11px] text-gray-300 mt-1">{winners.first.winnerName}</div>
+              <div className="text-xs font-mono font-bold text-amber-800">{winners.first?.prizeAmount?.toLocaleString()} ETB</div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white/5 border border-gray-300 text-center">
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-300">
               <div className="text-2xl mb-1">🥈</div>
-              <div className="text-xs font-bold uppercase text-gray-300">2nd Prize Winner</div>
-              <div className="text-3xl font-black font-mono text-white my-2">
-                #{String(winners.second.ticketNumber).padStart(3, '0')}
+              <div className="text-[10px] font-bold text-slate-600 uppercase">2nd Prize Winner</div>
+              <div className="text-2xl font-black font-mono text-slate-900 my-1">
+                #{String(winners.second?.ticketNumber).padStart(3, '0')}
               </div>
-              <div className="text-xs font-mono font-bold text-gray-200">1,000 ETB</div>
-              <div className="text-[11px] text-gray-300 mt-1">{winners.second.winnerName}</div>
+              <div className="text-xs font-mono font-bold text-slate-700">{winners.second?.prizeAmount?.toLocaleString()} ETB</div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-amber-700/10 border border-amber-600 text-center">
+            <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200">
               <div className="text-2xl mb-1">🥉</div>
-              <div className="text-xs font-bold uppercase text-amber-600">3rd Prize Winner</div>
-              <div className="text-3xl font-black font-mono text-white my-2">
-                #{String(winners.third.ticketNumber).padStart(3, '0')}
+              <div className="text-[10px] font-bold text-amber-800 uppercase">3rd Prize Winner</div>
+              <div className="text-2xl font-black font-mono text-slate-900 my-1">
+                #{String(winners.third?.ticketNumber).padStart(3, '0')}
               </div>
-              <div className="text-xs font-mono font-bold text-amber-500">500 ETB</div>
-              <div className="text-[11px] text-gray-300 mt-1">{winners.third.winnerName}</div>
+              <div className="text-xs font-mono font-bold text-amber-800">{winners.third?.prizeAmount?.toLocaleString()} ETB</div>
             </div>
           </div>
         </div>

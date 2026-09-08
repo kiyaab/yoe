@@ -63,19 +63,19 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="min-h-screen py-10 px-4 lg:px-8 max-w-3xl mx-auto">
-      <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white mb-6">
+      <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 mb-6">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-white">Payment & System Settings</h1>
-        <p className="text-xs text-gray-400 mt-1">
+        <h1 className="text-3xl font-black text-slate-900">Payment & System Settings</h1>
+        <p className="text-xs text-slate-500 mt-1">
           Configure official bank accounts and Telebirr details shown to participants during ticket checkout
         </p>
       </div>
 
       {successMsg && (
-        <div className="mb-6 p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2">
+        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 shadow-2xs">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{successMsg}</span>
         </div>
@@ -83,83 +83,83 @@ export default function AdminSettingsPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* CBE Account Settings */}
-        <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-4">
-          <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <h2 className="text-sm font-extrabold text-amber-800 uppercase tracking-wider">
             Commercial Bank of Ethiopia (CBE)
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">CBE Account Number</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">CBE Account Number</label>
               <input
                 type="text"
                 required
                 value={cbeAccount}
                 onChange={(e) => setCbeAccount(e.target.value)}
                 placeholder="1000234567890"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:border-amber-500 shadow-2xs transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">CBE Beneficiary Name</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">CBE Beneficiary Name</label>
               <input
                 type="text"
                 required
                 value={cbeName}
                 onChange={(e) => setCbeName(e.target.value)}
                 placeholder="Yalfal Online Eta Lottery"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-amber-400"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-amber-500 shadow-2xs transition"
               />
             </div>
           </div>
         </div>
 
         {/* Telebirr Settings */}
-        <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-4">
-          <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <h2 className="text-sm font-extrabold text-emerald-800 uppercase tracking-wider">
             Ethio Telecom Telebirr
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">Telebirr Phone Number</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Telebirr Phone Number</label>
               <input
                 type="text"
                 required
                 value={telebirrPhone}
                 onChange={(e) => setTelebirrPhone(e.target.value)}
                 placeholder="0911223344"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:border-amber-500 shadow-2xs transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">Telebirr Account Name</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Telebirr Account Name</label>
               <input
                 type="text"
                 required
                 value={telebirrName}
                 onChange={(e) => setTelebirrName(e.target.value)}
                 placeholder="Yalfal Online Eta"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-amber-400"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-amber-500 shadow-2xs transition"
               />
             </div>
           </div>
         </div>
 
         {/* Support Handle */}
-        <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-4">
-          <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">
             Customer Support Contact
           </h2>
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">Telegram Support Username</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Telegram Support Username</label>
             <input
               type="text"
               required
               value={supportContact}
               onChange={(e) => setSupportContact(e.target.value)}
               placeholder="@yalfalsupport"
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:border-amber-500 shadow-2xs transition"
             />
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function AdminSettingsPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-4 gold-btn text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 hover:scale-[1.01] transition disabled:opacity-50"
+          className="w-full py-4 gold-btn text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 hover:scale-[1.01] transition disabled:opacity-50"
         >
           <Save className="w-4 h-4" /> {loading ? 'Saving Settings...' : 'Save Configuration'}
         </button>

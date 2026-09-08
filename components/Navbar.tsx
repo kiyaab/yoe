@@ -43,25 +43,25 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 glass-panel border-b border-white/10 px-4 lg:px-8 py-3.5 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 px-4 lg:px-8 py-3.5 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.03)] transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
             🎡
           </div>
           <div>
-            <div className="font-extrabold text-lg tracking-wider text-white flex items-center gap-1.5">
-              YALFAL <span className="text-amber-400 font-normal text-xs uppercase px-1.5 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">Online Eta</span>
+            <div className="font-extrabold text-lg tracking-wider text-slate-900 flex items-center gap-1.5">
+              YALFAL <span className="text-amber-800 font-semibold text-xs uppercase px-2 py-0.5 rounded-full bg-amber-100/80 border border-amber-300/60">Online Eta</span>
             </div>
-            <div className="text-[10px] text-gray-400 font-medium tracking-wide">
+            <div className="text-[10px] text-slate-500 font-medium tracking-wide">
               100 ETB • 200 Numbers • 10,000 ETB Jackpot
             </div>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-1.5">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -70,11 +70,11 @@ export default function Navbar() {
                 href={link.href}
                 className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                    : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    ? 'bg-amber-50 text-amber-900 border border-amber-300/80 shadow-sm font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                 }`}
               >
-                {link.icon && <link.icon className="w-4 h-4" />}
+                {link.icon && <link.icon className="w-4 h-4 text-amber-600" />}
                 {link.label}
               </Link>
             );
@@ -85,11 +85,11 @@ export default function Navbar() {
               href="/admin"
               className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
                 pathname.startsWith('/admin')
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  : 'text-red-400/90 hover:bg-red-500/10'
+                  ? 'bg-rose-50 text-rose-800 border border-rose-300/80 shadow-sm'
+                  : 'text-rose-600 hover:bg-rose-50/80'
               }`}
             >
-              <ShieldAlert className="w-4 h-4 text-red-400" />
+              <ShieldAlert className="w-4 h-4 text-rose-600" />
               Admin Suite
             </Link>
           )}
@@ -100,14 +100,14 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-xs font-semibold text-white">
+                <div className="text-xs font-bold text-slate-900">
                   {user.firstName || user.username || user.phone || 'User'}
                 </div>
-                <div className="text-[10px] text-amber-400 font-mono">Verified Account</div>
+                <div className="text-[10px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Verified</div>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-red-400 transition-colors"
+                className="p-2 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 transition-colors"
                 title="Log Out"
               >
                 <LogOut className="w-4 h-4" />
@@ -117,13 +117,13 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition"
+                className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-950 rounded-lg hover:bg-slate-100 transition"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 rounded-lg hover:brightness-110 shadow-md shadow-amber-500/20 transition"
+                className="px-4 py-2 text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 rounded-lg hover:brightness-105 shadow-sm shadow-amber-500/20 transition"
               >
                 Register
               </Link>
@@ -134,7 +134,7 @@ export default function Navbar() {
         {/* Mobile menu toggle */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2 text-gray-400 hover:text-white"
+          className="md:hidden p-2 text-slate-600 hover:text-slate-950 rounded-lg hover:bg-slate-100"
         >
           {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -142,13 +142,13 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {menuOpen && (
-        <div className="md:hidden pt-4 pb-2 border-t border-white/10 mt-3 space-y-1">
+        <div className="md:hidden pt-4 pb-2 border-t border-slate-200/80 mt-3 space-y-1">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5"
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100"
             >
               {link.label}
             </Link>
@@ -157,19 +157,19 @@ export default function Navbar() {
             <Link
               href="/admin"
               onClick={() => setMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10"
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-rose-700 bg-rose-50"
             >
               Admin Suite
             </Link>
           )}
-          <div className="pt-3 border-t border-white/10">
+          <div className="pt-3 border-t border-slate-200/80">
             {user ? (
               <button
                 onClick={() => {
                   setMenuOpen(false);
                   handleLogout();
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg"
+                className="w-full text-left px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg"
               >
                 Log Out
               </button>
@@ -178,14 +178,14 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMenuOpen(false)}
-                  className="flex-1 text-center py-2 text-sm font-medium text-gray-300 bg-white/5 rounded-lg"
+                  className="flex-1 text-center py-2 text-sm font-semibold text-slate-700 bg-slate-100 rounded-lg"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMenuOpen(false)}
-                  className="flex-1 text-center py-2 text-sm font-bold text-slate-950 bg-amber-400 rounded-lg"
+                  className="flex-1 text-center py-2 text-sm font-bold text-slate-950 bg-amber-400 rounded-lg shadow-sm"
                 >
                   Register
                 </Link>

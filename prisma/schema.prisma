@@ -1,0 +1,273 @@
+// 🎡 YALFAL ONLINE ETA — Prisma Schema
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  REVIEWER
+  SUPPORT
+}
+
+enum RoundStatus {
+  DRAFT
+  OPEN
+  PAUSED
+  FULL
+  DRAWING
+  COMPLETED
+  CANCELLED
+}
+
+enum TicketStatus {
+  AVAILABLE
+  RESERVED
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum PaymentMethodCode {
+  CBE
+  TELEBIRR
+}
+
+enum WinnerPosition {
+  FIRST_PRIZE
+  SECOND_PRIZE
+  THIRD_PRIZE
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  telegramId    String         @unique
+  username      String?
+  firstName     String?
+  lastName      String?
+  phone         String?
+  passwordHash  String?
+  status        UserStatus     @default(ACTIVE)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  tickets       Ticket[]
+  payments      Payment[]
+  notifications Notification[]
+
+  @@index([telegramId])
+  @@index([phone])
+}
+
+model Admin {
+  id               String       @id @default(uuid())
+  email            String       @unique
+  passwordHash     String
+  name             String
+  role             AdminRole    @default(ADMIN)
+  permissions      String[]     @default(["MANAGE_ROUNDS", "REVIEW_PAYMENTS", "MANAGE_USERS", "DRAW_WINNERS", "MANAGE_SETTINGS", "VIEW_AUDIT", "BROADCAST"])
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  auditLogs        AuditLog[]
+  reviewedPayments Payment[]
+  draws            Draw[]
+
+  @@index([email])
+}
+
+model LotteryRound {
+  id           String        @id @default(uuid())
+  roundNumber  Int           @unique
+  name         String
+  ticketPrice  Float         @default(100.0)
+  maxTickets   Int           @default(200)
+  firstPrize   Float         @default(10000.0)
+  secondPrize  Float         @default(1000.0)
+  thirdPrize   Float         @default(500.0)
+  status       RoundStatus   @default(DRAFT)
+  startDate    DateTime?
+  endDate      DateTime?
+  drawnAt      DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  tickets      Ticket[]
+  winners      Winner[]
+  draws        Draw[]
+
+  @@index([roundNumber])
+  @@index([status])
+}
+
+model Ticket {
+  id           String        @id @default(uuid())
+  roundId      String
+  ticketNumber Int
+  userId       String?
+  status       TicketStatus  @default(AVAILABLE)
+  reservedAt   DateTime?
+  confirmedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  round        LotteryRound  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id])
+  payment      Payment?
+  winner       Winner?
+
+  @@unique([roundId, ticketNumber])
+  @@index([roundId, status])
+  @@index([userId])
+}
+
+model Payment {
+  id              String            @id @default(uuid())
+  reference       String            @unique
+  ticketId        String            @unique
+  userId          String
+  amount          Float
+  method          PaymentMethodCode
+  status          PaymentStatus     @default(PENDING)
+  rejectionReason String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  ticket          Ticket            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id])
+  reviewedBy      Admin?            @relation(fields: [reviewedById], references: [id])
+  receipt         Receipt?
+
+  @@index([status])
+  @@index([userId])
+  @@index([reference])
+}
+
+model Receipt {
+  id             String       @id @default(uuid())
+  paymentId      String       @unique
+  originalName   String
+  mimeType       String
+  size           Int
+  hash           String       @unique // SHA-256 for fraud prevention
+  storageKey     String
+  telegramFileId String?
+  uploadedAt     DateTime     @default(now())
+
+  payment        Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([hash])
+}
+
+model Draw {
+  id            String       @id @default(uuid())
+  roundId       String
+  adminId       String?
+  startedAt     DateTime     @default(now())
+  completedAt   DateTime?
+  auditMetadata String?      // JSON string of cryptographic parameters & seed
+  createdAt     DateTime     @default(now())
+
+  round         LotteryRound @relation(fields: [roundId], references: [id])
+  admin         Admin?       @relation(fields: [adminId], references: [id])
+  winners       Winner[]
+
+  @@index([roundId])
+}
+
+model Winner {
+  id                 String         @id @default(uuid())
+  roundId            String
+  ticketId           String         @unique
+  drawId             String?
+  position           WinnerPosition
+  prizeAmount        Float
+  randomnessMetadata String         // Cryptographic audit details
+  createdAt          DateTime       @default(now())
+
+  round              LotteryRound   @relation(fields: [roundId], references: [id])
+  ticket             Ticket         @relation(fields: [ticketId], references: [id])
+  draw               Draw?          @relation(fields: [drawId], references: [id])
+
+  @@unique([roundId, position])
+  @@index([roundId])
+}
+
+model PaymentMethod {
+  id            String            @id @default(uuid())
+  code          PaymentMethodCode @unique
+  accountName   String
+  accountNumber String
+  instructions  String?
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  adminId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  String?  // JSON string
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  admin     Admin?   @relation(fields: [adminId], references: [id])
+
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+model Notification {
+  id         String             @id @default(uuid())
+  userId     String?
+  telegramId String?
+  title      String
+  message    String
+  type       String
+  status     NotificationStatus @default(PENDING)
+  sentAt     DateTime?
+  createdAt  DateTime           @default(now())
+
+  user       User?              @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([telegramId])
+  @@index([status])
+}

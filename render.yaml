@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: yalfal-online-eta
+    name: yalfal-online-eta-bot
     env: node
     plan: free
     region: frankfurt
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start:prod
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -18,7 +18,7 @@ services:
         generateValue: true
       - key: TELEGRAM_BOT_TOKEN
         sync: false
-      - key: TELEGRAM_ADMIN_CHAT_ID
+      - key: TELEGRAM_ADMIN_IDS
         sync: false
-      - key: NEXT_PUBLIC_APP_NAME
-        value: Yalfal Online Eta
+      - key: TELEGRAM_BOT_MODE
+        value: polling

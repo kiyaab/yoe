@@ -5,7 +5,7 @@ services:
     plan: free
     region: frankfurt
     buildCommand: npm install && npx prisma generate && npm run build
-    startCommand: npm run start:prod
+    startCommand: npm run start:all
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

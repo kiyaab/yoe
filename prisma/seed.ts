@@ -37,11 +37,13 @@ async function main() {
   // 2. Seed Payment Methods (CBE & Telebirr)
   const cbeMethod = await prisma.paymentMethod.upsert({
     where: { code: PaymentMethodCode.CBE },
-    update: {},
+    update: {
+      accountNumber: '1000346643289',
+    },
     create: {
       code: PaymentMethodCode.CBE,
       accountName: 'Yalfal Online Eta Ltd.',
-      accountNumber: '1000234567891',
+      accountNumber: '1000346643289',
       instructions: 'Transfer exact 100 ETB per ticket to our CBE account. Capture screenshot of receipt showing reference ID.',
       isActive: true,
     },
@@ -50,11 +52,13 @@ async function main() {
 
   const telebirrMethod = await prisma.paymentMethod.upsert({
     where: { code: PaymentMethodCode.TELEBIRR },
-    update: {},
+    update: {
+      accountNumber: '0913344061',
+    },
     create: {
       code: PaymentMethodCode.TELEBIRR,
       accountName: 'Yalfal Online Eta',
-      accountNumber: '0911223344',
+      accountNumber: '0913344061',
       instructions: 'Send 100 ETB via Telebirr. Capture screenshot or PDF showing the transaction SMS / confirmation code.',
       isActive: true,
     },
@@ -69,6 +73,10 @@ async function main() {
     { key: 'SUPPORT_TELEGRAM', value: '@YalfalSupport', description: 'Telegram support handle' },
     { key: 'TICKET_PRICE', value: '100', description: 'Standard ticket entry price in ETB' },
     { key: 'MAX_TICKETS_PER_ROUND', value: '200', description: 'Capacity of numbers per round' },
+    { key: 'CBE_ACCOUNT_NUMBER', value: '1000346643289', description: 'CBE payment account number' },
+    { key: 'CBE_ACCOUNT_NAME', value: 'Yalfal Online Eta Lottery', description: 'CBE beneficiary name' },
+    { key: 'TELEBIRR_PHONE', value: '0913344061', description: 'Telebirr payment phone number' },
+    { key: 'TELEBIRR_ACCOUNT_NAME', value: 'Yalfal Online Eta', description: 'Telebirr account name' },
   ];
 
   for (const setting of settings) {

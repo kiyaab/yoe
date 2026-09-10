@@ -46,3 +46,4 @@ frontend/
 *.sqlite
 .DS_Store
 Thumbs.db
+*.tsbuildinfo

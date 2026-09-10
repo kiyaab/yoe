@@ -95,7 +95,7 @@ export default function AdminSettingsPage() {
                 required
                 value={cbeAccount}
                 onChange={(e) => setCbeAccount(e.target.value)}
-                placeholder="1000234567890"
+                placeholder="1000346643289"
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:border-amber-500 shadow-2xs transition"
               />
             </div>
@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
                 required
                 value={telebirrPhone}
                 onChange={(e) => setTelebirrPhone(e.target.value)}
-                placeholder="0911223344"
+                placeholder="0913344061"
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:border-amber-500 shadow-2xs transition"
               />
             </div>

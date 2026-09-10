@@ -149,7 +149,7 @@ function CheckoutContent() {
   }
 
   const activeMethod = methods.find((m) => m.code === selectedMethod) || {
-    accountNumber: selectedMethod === 'CBE' ? '1000234567890' : '0911223344',
+    accountNumber: selectedMethod === 'CBE' ? '1000346643289' : '0913344061',
     accountName: 'Yalfal Online Eta Lottery',
     instructions: 'Send 100 ETB and upload screenshot.',
   };

@@ -178,9 +178,9 @@ VALUES (
 -- 4. Payment Methods: CBE & Telebirr
 INSERT INTO "payment_methods" ("code", "accountName", "accountNumber", "instructions", "isActive")
 VALUES
-('CBE', 'Yalfal Online Eta Ltd.', '1000234567891', 'Transfer exact 100 ETB per ticket to our CBE account. Capture screenshot of receipt showing reference ID.', true),
-('TELEBIRR', 'Yalfal Online Eta', '0911223344', 'Send 100 ETB via Telebirr. Capture screenshot or PDF showing the transaction SMS / confirmation code.', true)
-ON CONFLICT ("code") DO NOTHING;
+('CBE', 'Yalfal Online Eta Ltd.', '1000346643289', 'Transfer exact 100 ETB per ticket to our CBE account. Capture screenshot of receipt showing reference ID.', true),
+('TELEBIRR', 'Yalfal Online Eta', '0913344061', 'Send 100 ETB via Telebirr. Capture screenshot or PDF showing the transaction SMS / confirmation code.', true)
+ON CONFLICT ("code") DO UPDATE SET "accountNumber" = EXCLUDED."accountNumber";
 
 -- 5. System Settings
 INSERT INTO "system_settings" ("key", "value", "description")
@@ -189,8 +189,12 @@ VALUES
 ('TAGLINE', 'Your Number. Your Chance. Your Moment.', 'Official slogan'),
 ('SUPPORT_TELEGRAM', '@yalfalonlinebot', 'Telegram support handle'),
 ('TICKET_PRICE', '100', 'Standard ticket entry price in ETB'),
-('MAX_TICKETS_PER_ROUND', '200', 'Capacity of numbers per round')
-ON CONFLICT ("key") DO NOTHING;
+('MAX_TICKETS_PER_ROUND', '200', 'Capacity of numbers per round'),
+('CBE_ACCOUNT_NUMBER', '1000346643289', 'CBE payment account number'),
+('CBE_ACCOUNT_NAME', 'Yalfal Online Eta Lottery', 'CBE beneficiary name'),
+('TELEBIRR_PHONE', '0913344061', 'Telebirr payment phone number'),
+('TELEBIRR_ACCOUNT_NAME', 'Yalfal Online Eta', 'Telebirr account name')
+ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value";
 
 -- 6. Genesis Round #001
 DO $$
